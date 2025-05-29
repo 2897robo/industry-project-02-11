@@ -28,13 +28,20 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	implementation 'org.flywaydb:flyway-core:9.22.3'
 	runtimeOnly 'org.postgresql:postgresql'
+
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.postgresql:postgresql'
+
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'com.h2database:h2'
 }
 
-tasks.named('test') {
+test {
 	useJUnitPlatform()
+	systemProperty "spring.profiles.active", "dev"
+	systemProperty 'spring.flyway.enabled', 'false'
 }
