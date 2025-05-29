@@ -12,8 +12,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ActiveProfiles("test")
 @DataJpaTest
+@ActiveProfiles("dev")
 class UserRepositoryTest {
 
     @Autowired
