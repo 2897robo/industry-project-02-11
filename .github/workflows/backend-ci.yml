@@ -16,13 +16,13 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:13
         ports:
           - 5432:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_DB: team11
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -30,7 +30,7 @@ jobs:
           --health-retries 5
 
       redis:
-        image: redis:alpine
+        image: redis:6.2-alpine
         ports:
           - 6379:6379
         options: >-
