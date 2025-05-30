@@ -3,7 +3,6 @@ package com.team11.auth.authservice.presentation.controller;
 import com.team11.auth.authservice.application.service.AuthService;
 import com.team11.auth.authservice.presentation.dto.LoginRequest;
 import com.team11.auth.authservice.presentation.dto.TokenResponse;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

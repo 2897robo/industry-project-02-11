@@ -30,7 +30,7 @@ public class TokenProvider {
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60L * 24;
 
     @Autowired
-    public TokenProvider(TokenService tokenService, @Value("${jwt.key}") String key) {
+    public TokenProvider(TokenService tokenService, @Value("${jwt.secret}") String key) {
         this.tokenService = tokenService;
         this.secretKey = Keys.hmacShaKeyFor(key.getBytes());
     }
