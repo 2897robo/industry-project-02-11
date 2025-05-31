@@ -1,6 +1,6 @@
-package com.team11.backend.service.dto;
+package com.team11.user.userservice.presentation.dto.response;
 
-import com.team11.backend.domain.user.User;
+import com.team11.user.userservice.persistence.domain.User;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -11,7 +11,7 @@ public record ReadUserResponse(
         String uid,
         String name,
         LocalDateTime createdAt
-        ) {
+) {
     public static ReadUserResponse from(User user) {
         return ReadUserResponse.builder()
                 .id(user.getId())

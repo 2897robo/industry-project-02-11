@@ -1,5 +1,5 @@
 spring:
   application:
-    name: backend
+    name: resource-service
   profiles:
     active: dev

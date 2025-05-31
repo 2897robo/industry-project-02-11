@@ -1,6 +1,6 @@
 package com.team11.auth.authservice.commons.utils;
 
-import com.team11.auth.authservice.application.dto.ReadUserResponse;
+import com.team11.auth.authservice.infrastructure.dto.ReadUserResponse;
 import com.team11.auth.authservice.application.service.TokenService;
 import com.team11.auth.authservice.commons.exception.ApplicationException;
 import com.team11.auth.authservice.commons.exception.TokenException;

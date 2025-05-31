@@ -1,6 +1,6 @@
 package com.team11.auth.authservice.infrastructure.adapter;
 
-import com.team11.auth.authservice.application.dto.ReadUserResponse;
+import com.team11.auth.authservice.infrastructure.dto.ReadUserResponse;
 import com.team11.auth.authservice.infrastructure.fallback.UserFallBack;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

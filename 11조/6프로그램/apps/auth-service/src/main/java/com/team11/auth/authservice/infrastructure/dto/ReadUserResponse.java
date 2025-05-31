@@ -1,4 +1,4 @@
-package com.team11.auth.authservice.application.dto;
+package com.team11.auth.authservice.infrastructure.dto;
 
 import java.time.LocalDateTime;
 

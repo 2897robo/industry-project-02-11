@@ -1,6 +1,5 @@
 package com.team11.backend.domain.audit;
 
-import com.team11.backend.domain.user.User;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -13,9 +12,8 @@ public class AuditLog {
     private Long id;
 
     // 수행한 사용자
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(length = 100)
     private String action; // 예: login, update_config

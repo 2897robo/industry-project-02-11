@@ -1,6 +1,7 @@
-package com.team11.backend.repository.user;
+package com.team11.user.userservice.persistence.repository;
 
-import com.team11.backend.domain.user.User;
+
+import com.team11.user.userservice.persistence.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

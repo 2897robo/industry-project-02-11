@@ -1,8 +1,9 @@
-package com.team11.backend.service;
+package com.team11.user.userservice.application.service;
 
-import com.team11.backend.domain.user.User;
-import com.team11.backend.repository.user.UserRepository;
-import com.team11.backend.service.dto.ReadUserResponse;
+import com.team11.user.userservice.persistence.domain.User;
+import com.team11.user.userservice.presentation.dto.request.CreateUserRequest;
+import com.team11.user.userservice.presentation.dto.response.ReadUserResponse;
+import com.team11.user.userservice.persistence.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,9 +33,13 @@ public class UserService {
     @Transactional(readOnly = true)
     public ReadUserResponse getByUid(String uid) {
 
-        User user =userRepository.findByUid(uid)
+        User user = userRepository.findByUid(uid)
                 .orElseThrow(() -> new RuntimeException("유저가 존재하지 않습니다."));
 
         return ReadUserResponse.from(user);
+    }
+
+    public void createUser(CreateUserRequest request) {
+        userRepository.save(request.toEntity(passwordEncoder));
     }
 }

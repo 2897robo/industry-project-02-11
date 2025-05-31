@@ -1,4 +1,4 @@
-package com.team11.backend.commons.config;
+package com.team11.user.userservice.commons.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
