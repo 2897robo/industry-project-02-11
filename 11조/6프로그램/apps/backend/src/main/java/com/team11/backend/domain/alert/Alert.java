@@ -1,6 +1,5 @@
 package com.team11.backend.domain.alert;
 
-import com.team11.backend.domain.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -14,9 +13,8 @@ public class Alert {
     private Long id;
 
     // 사용자 연관관계
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(name = "alert_type", length = 50)
     private String alertType; // 예: 예산 초과, 유휴 지속 등

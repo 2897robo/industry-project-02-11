@@ -1,6 +1,6 @@
 package com.team11.auth.authservice.commons.utils;
 
-import com.team11.auth.authservice.application.dto.ReadUserResponse;
+import com.team11.auth.authservice.infrastructure.dto.ReadUserResponse;
 import com.team11.auth.authservice.application.service.TokenService;
 import com.team11.auth.authservice.commons.exception.ApplicationException;
 import com.team11.auth.authservice.commons.exception.TokenException;
@@ -26,30 +26,30 @@ public class TokenProvider {
     private final SecretKey secretKey;
     private final TokenService tokenService;
 
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000;
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60L * 24;
 
     @Autowired
-    public TokenProvider(TokenService tokenService, @Value("${jwt.key}") String key) {
+    public TokenProvider(TokenService tokenService, @Value("${jwt.secret}") String key) {
         this.tokenService = tokenService;
         this.secretKey = Keys.hmacShaKeyFor(key.getBytes());
     }
 
-    public String generateAccessToken(ReadUserResponse user) {
-        return generateToken(user, ACCESS_TOKEN_EXPIRE_TIME);
+    public String generateAccessToken(String uid) {
+        return generateToken(uid, ACCESS_TOKEN_EXPIRE_TIME);
     }
 
-    public String generateRefreshToken(ReadUserResponse user, String accessToken) {
-        String refreshToken = generateToken(user, REFRESH_TOKEN_EXPIRE_TIME);
-        return tokenService.saveOrUpdate(user.uid(), refreshToken, accessToken);
+    public String generateRefreshToken(String uid, String accessToken) {
+        String refreshToken = generateToken(uid, REFRESH_TOKEN_EXPIRE_TIME);
+        return tokenService.saveOrUpdate(uid, refreshToken, accessToken);
     }
 
-    private String generateToken(ReadUserResponse user, long expireTime) {
+    private String generateToken(String uid, long expireTime) {
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + expireTime);
 
         return Jwts.builder()
-                .subject(user.uid())
+                .subject(uid)
                 .issuedAt(now)
                 .expiration(expiredDate)
                 .signWith(secretKey, Jwts.SIG.HS512)
@@ -71,9 +71,9 @@ public class TokenProvider {
         );
     }
 
-    public String reissueAccessToken(Token token, ReadUserResponse user) {
+    public String reissueAccessToken(Token token, String uid) {
 
-        String reissueAccessToken = generateAccessToken(user);
+        String reissueAccessToken = generateAccessToken(uid);
         tokenService.updateToken(reissueAccessToken ,token);
 
         return reissueAccessToken;
