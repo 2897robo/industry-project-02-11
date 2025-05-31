@@ -13,7 +13,7 @@ public class UserFallBack implements UserAdapter {
     }
 
     @Override
-    public ReadUserResponse findByUid(String uid) {
+    public ReadUserResponse findByUid() {
         return new ReadUserResponse(0L ,"test","test", LocalDateTime.now());
     }
 }

@@ -23,7 +23,7 @@ public class UserService {
         User user = userRepository.findByUid(uid)
                 .orElseThrow(() -> new RuntimeException("유저가 존재하지 않습니다."));
 
-        if(!passwordEncoder.matches(user.getPasswordHash(), password)) {
+        if(!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new RuntimeException("비밀번호가 맞지 않습니다.");
         }
 

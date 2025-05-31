@@ -7,7 +7,6 @@ import com.team11.auth.authservice.persistence.domain.Token;
 import com.team11.auth.authservice.presentation.dto.LoginRequest;
 import com.team11.auth.authservice.presentation.dto.TokenResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -18,13 +17,12 @@ public class AuthService {
 
     private final UserAdapter userAdapter;
     private final TokenProvider tokenProvider;
-    private final PasswordEncoder passwordEncoder;
     private static String TOKEN_PREFIX = "Bearer ";
 
     public TokenResponse login(LoginRequest request) {
-        ReadUserResponse user = userAdapter.findByUidAndPassword(request.uid(), passwordEncoder.encode(request.password()));
-        String accessToken = tokenProvider.generateAccessToken(user);
-        String refreshToken = tokenProvider.generateRefreshToken(user, accessToken);
+        ReadUserResponse user = userAdapter.findByUidAndPassword(request.uid(), request.password());
+        String accessToken = tokenProvider.generateAccessToken(user.uid());
+        String refreshToken = tokenProvider.generateRefreshToken(user.uid(), accessToken);
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
@@ -35,11 +33,10 @@ public class AuthService {
     public String refreshTokenLogin(String accessToken, String refreshToken) {
 
         accessToken = resolveToken(accessToken);
-        refreshToken = resolveToken(refreshToken);
 
         Token token = tokenProvider.validRefreshToken(accessToken, refreshToken);
-        ReadUserResponse user = userAdapter.findByUid(tokenProvider.getUidFromToken(refreshToken));
-        return tokenProvider.reissueAccessToken(token, user);
+        String uid = tokenProvider.getUidFromToken(refreshToken);
+        return tokenProvider.reissueAccessToken(token, uid);
     }
 
     private String resolveToken(String token) {
