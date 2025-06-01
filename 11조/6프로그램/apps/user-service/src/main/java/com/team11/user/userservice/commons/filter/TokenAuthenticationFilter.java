@@ -85,7 +85,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
-                "/users/login"
+                "/users/login",
+                "/users/check"
         );
 
         for (String skippedUri : skippedUris) {

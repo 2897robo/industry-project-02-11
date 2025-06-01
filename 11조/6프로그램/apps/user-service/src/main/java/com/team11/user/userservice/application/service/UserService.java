@@ -42,4 +42,8 @@ public class UserService {
     public void createUser(CreateUserRequest request) {
         userRepository.save(request.toEntity(passwordEncoder));
     }
+
+    public boolean confirmDuplicate(String uid) {
+        return userRepository.existsByUid(uid);
+    }
 }

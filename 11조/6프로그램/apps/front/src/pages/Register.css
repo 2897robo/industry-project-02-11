@@ -27,6 +27,20 @@
   border-radius: 8px;
 }
 
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: -12px;
+  margin-bottom: -12px;
+}
+
+.check-message {
+  color: red;
+  font-size: 14px;
+  margin-top: -12px;
+  margin-bottom: -12px;
+}
+
 .button {
   height: 56px;
   width: 148px;
