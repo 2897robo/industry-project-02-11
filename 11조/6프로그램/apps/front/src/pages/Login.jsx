@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import Button from "../components/Button";
 import "./Login.css";
+import axiosInstance from "../utils/axiosInstance";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -17,7 +19,7 @@ export default function LoginPage() {
     }
   }, []);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (uidSave) {
       localStorage.setItem("uid", uid);
@@ -25,6 +27,33 @@ export default function LoginPage() {
       localStorage.removeItem("uid");
     }
     console.log("로그인 시도:", { uid, password });
+
+    try {
+      const response = await axiosInstance.post(
+        "/auth-service/auth/login",
+        {
+          uid,
+          password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      console.log(response);
+
+      const { accessToken } = response.data || {};
+      if (!accessToken) {
+        throw new Error("토큰이 존재하지 않습니다.");
+      }
+      localStorage.setItem("token", accessToken);
+
+      console.log("로그인 성공:", response.data);
+      navigate("/");
+    } catch (error) {
+      console.error("로그인 실패:", error);
+      alert("아이디 또는 비밀번호가 올바르지 않습니다.");
+    }
   };
 
   return (
@@ -66,13 +95,11 @@ export default function LoginPage() {
           </label>
         </div>
 
-        <button type="submit" className="login-button">
-          로그인
-        </button>
+        <Button type="LOGIN" text="로그인" />
 
         <div className="signup-row">
           <span>신규회원이신가요? </span>
-          <Link to="/auth/signup" className="link-text bold">
+          <Link to="/register" className="link-text bold">
             회원가입
           </Link>
         </div>
