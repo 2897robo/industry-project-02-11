@@ -5,7 +5,7 @@ import Home from "./pages/Home";
 import MyPage from "./pages/MyPage";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
-import PrivateRoute from "./components/PrivateRoute";
+import PrivateRoute from "./routes/PrivateRoute";
 
 function App() {
   const token = localStorage.getItem("token");
