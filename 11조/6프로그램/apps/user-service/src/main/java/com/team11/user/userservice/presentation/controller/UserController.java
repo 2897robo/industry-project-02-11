@@ -31,4 +31,9 @@ public class UserController {
         userService.createUser(request);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> confirmDuplicate(@RequestParam("uid") String uid) {
+        return ResponseEntity.ok(userService.confirmDuplicate(uid));
+    }
 }
