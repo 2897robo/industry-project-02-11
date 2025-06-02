@@ -21,4 +21,20 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+axiosInstance.interceptors.response.use(
+  (response) => {
+    const authHeader = response.headers["Authorization"];
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const newToken = authHeader.replace("Bearer ", "").trim();
+      localStorage.setItem("token", newToken);
+    }
+
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;

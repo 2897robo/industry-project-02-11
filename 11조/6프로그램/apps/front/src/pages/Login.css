@@ -90,3 +90,7 @@
 .signup-row .bold {
   font-weight: 600;
 }
+
+.input-field {
+  box-sizing: border-box;
+}
