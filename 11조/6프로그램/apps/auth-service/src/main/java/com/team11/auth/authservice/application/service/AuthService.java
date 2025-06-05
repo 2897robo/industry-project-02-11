@@ -1,6 +1,6 @@
 package com.team11.auth.authservice.application.service;
 
-import com.team11.auth.authservice.application.dto.ReadUserResponse;
+import com.team11.auth.authservice.infrastructure.dto.ReadUserResponse;
 import com.team11.auth.authservice.commons.utils.TokenProvider;
 import com.team11.auth.authservice.infrastructure.adapter.UserAdapter;
 import com.team11.auth.authservice.persistence.domain.Token;
@@ -21,8 +21,8 @@ public class AuthService {
 
     public TokenResponse login(LoginRequest request) {
         ReadUserResponse user = userAdapter.findByUidAndPassword(request.uid(), request.password());
-        String accessToken = tokenProvider.generateAccessToken(user);
-        String refreshToken = tokenProvider.generateRefreshToken(user, accessToken);
+        String accessToken = tokenProvider.generateAccessToken(user.uid());
+        String refreshToken = tokenProvider.generateRefreshToken(user.uid(), accessToken);
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
@@ -33,11 +33,10 @@ public class AuthService {
     public String refreshTokenLogin(String accessToken, String refreshToken) {
 
         accessToken = resolveToken(accessToken);
-        refreshToken = resolveToken(refreshToken);
 
         Token token = tokenProvider.validRefreshToken(accessToken, refreshToken);
-        ReadUserResponse user = userAdapter.findByUid(tokenProvider.getUidFromToken(refreshToken));
-        return tokenProvider.reissueAccessToken(token, user);
+        String uid = tokenProvider.getUidFromToken(refreshToken);
+        return tokenProvider.reissueAccessToken(token, uid);
     }
 
     private String resolveToken(String token) {

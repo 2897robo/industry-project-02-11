@@ -1,0 +1,71 @@
+.signup-form {
+  width: 30%;
+  margin: 80px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: #333;
+}
+
+.form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.input-wrapper {
+  width: 404px;
+}
+
+.input {
+  box-sizing: border-box;
+  height: 70px;
+  width: 100%;
+  font-size: 16px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: -12px;
+  margin-bottom: -12px;
+}
+
+.check-message {
+  color: red;
+  font-size: 14px;
+  margin-top: -12px;
+  margin-bottom: -12px;
+}
+
+.button {
+  height: 56px;
+  width: 148px;
+  border: none;
+  background-color: #fcbf00;
+  color: #000;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.email-row {
+  justify-content: space-between;
+}
+
+.at-symbol {
+  font-size: 18px;
+}
+
+.email-select {
+  height: 56px;
+  width: 264px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  padding: 0 12px;
+}
