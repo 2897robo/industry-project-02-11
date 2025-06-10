@@ -17,18 +17,33 @@ export default function Resource() {
   ]);
 
   const [showModal, setShowModal] = useState(false);
-  const [newName, setNewName] = useState("");
+  const [accessKey, setAccessKey] = useState("");
+  const [secretKey, setSecretKey] = useState("");
 
   const handleAddAccount = () => {
-    if (!newName.trim() || accounts.length >= MAX_ACCOUNTS) return;
+    if (
+      !accessKey.trim() ||
+      !secretKey.trim() ||
+      accounts.length >= MAX_ACCOUNTS
+    )
+      return;
+
     const newAccount = {
-      name: newName,
+      name: accessKey, // 임시로 accessKey를 ID로 활용 (별도 ID 사용 시 조정)
       image:
         "https://velog.velcdn.com/images/bbaekddo/post/e42ea147-4df5-4e9f-96e8-d5dfb261f4f6/image.png",
+      accessKey,
+      secretKey,
     };
+
     setAccounts([...accounts, newAccount]);
-    setNewName("");
+    setAccessKey("");
+    setSecretKey("");
     setShowModal(false);
+  };
+
+  const handleCardClick = (resourceId) => {
+    nav(`/dashboard/${resourceId}`);
   };
 
   return (
@@ -41,7 +56,11 @@ export default function Resource() {
       <div className="account-container">
         <div className="account-grid">
           {accounts.map((account, index) => (
-            <div key={index} className="account-card">
+            <div
+              key={index}
+              className="account-card"
+              onClick={() => handleCardClick(account.name)}
+            >
               <img
                 src={account.image}
                 alt={account.name}
@@ -64,15 +83,21 @@ export default function Resource() {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3>새 계정 추가</h3>
+            <h3>AWS IAM 계정 등록</h3>
             <input
               type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="계정 이름을 입력하세요"
+              value={accessKey}
+              onChange={(e) => setAccessKey(e.target.value)}
+              placeholder="Access Key ID"
+            />
+            <input
+              type="password"
+              value={secretKey}
+              onChange={(e) => setSecretKey(e.target.value)}
+              placeholder="Secret Access Key"
             />
             <div className="modal-buttons">
-              <button onClick={handleAddAccount}>추가</button>
+              <button onClick={handleAddAccount}>등록</button>
               <button onClick={() => setShowModal(false)}>취소</button>
             </div>
           </div>
