@@ -4,6 +4,7 @@ import Button from "../components/Button";
 import Input from "../components/Input";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
+import Header from "../components/Header";
 
 const Register = () => {
   const [uid, setUid] = useState("");
@@ -185,7 +186,18 @@ const Register = () => {
 
   return (
     <div className="signup-form">
-      <h1 className="signup-title">회원가입</h1>
+      <Header
+        title={"회원가입"}
+        leftChild={
+          <Button
+            onClick={() => {
+              nav(-1);
+            }}
+            text={"< 뒤로가기"}
+          />
+        }
+      />
+      {/* <h1 className="signup-title">회원가입</h1> */}
 
       <div className="form-row">
         <Input

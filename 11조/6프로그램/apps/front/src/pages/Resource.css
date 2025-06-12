@@ -1,0 +1,108 @@
+.account-container {
+  padding: 2rem;
+  background: white;
+  border-radius: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.close-btn {
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.account-grid {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.account-card {
+  width: 160px;
+  height: 160px;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  background: #fff;
+}
+
+.account-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+}
+
+.add-card {
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 300px;
+  text-align: center;
+}
+
+.modal input {
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-buttons button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal-buttons button:first-child {
+  background-color: #333;
+  color: white;
+}
+
+.modal-buttons button:last-child {
+  background-color: #eee;
+}
