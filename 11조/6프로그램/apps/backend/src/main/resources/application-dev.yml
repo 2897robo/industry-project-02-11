@@ -34,3 +34,10 @@ eureka:
 
 server:
   port: 8080
+
+jwt:
+  secret: ne4hrscEOHxAweirKaQrWuCmxyWDIfCgJT1plxRRvdSvh5CBZRlj7l8fzUk7CXkJc6iLQKsg88vu64Xgh5OiF6HaiBBtk2oUnTdetest
+
+aes:
+  key: keyb0b5a4b9a31e5ba2aee85ee1d6c255gg
+  iv: a67f0949059fbdfa

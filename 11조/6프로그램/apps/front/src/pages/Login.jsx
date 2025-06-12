@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Button from "../components/Button";
 import "./Login.css";
 import axiosInstance from "../utils/axiosInstance";
+import Header from "../components/Header";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [uidSave, setUidSave] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const nav = useNavigate();
 
   useEffect(() => {
     const savedUid = localStorage.getItem("uid");
@@ -57,53 +59,66 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleLogin} className="login-form">
-        <input
-          type="text"
-          placeholder="아이디"
-          value={uid}
-          onChange={(e) => setUid(e.target.value)}
-          className="input-field"
-        />
-
-        <div className="input-wrapper">
+    <>
+      <Header
+        title="로그인"
+        leftChild={
+          <Button
+            onClick={() => {
+              nav(-1);
+            }}
+            text={"< 뒤로가기"}
+          />
+        }
+      />
+      <div className="login-container">
+        <form onSubmit={handleLogin} className="login-form">
           <input
-            type={showPassword ? "text" : "password"}
-            placeholder="비밀번호"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            type="text"
+            placeholder="아이디"
+            value={uid}
+            onChange={(e) => setUid(e.target.value)}
             className="input-field"
           />
-          <button
-            type="button"
-            className="show-password"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            👁
-          </button>
-        </div>
 
-        <div className="options-row">
-          <label className="checkbox-label">
+          <div className="input-wrapper">
             <input
-              type="checkbox"
-              checked={uidSave}
-              onChange={() => setUidSave(!uidSave)}
+              type={showPassword ? "text" : "password"}
+              placeholder="비밀번호"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-field"
             />
-            <span>아이디 저장</span>
-          </label>
-        </div>
+            <button
+              type="button"
+              className="show-password"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              👁
+            </button>
+          </div>
 
-        <Button type="LOGIN" text="로그인" />
+          <div className="options-row">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={uidSave}
+                onChange={() => setUidSave(!uidSave)}
+              />
+              <span>아이디 저장</span>
+            </label>
+          </div>
 
-        <div className="signup-row">
-          <span>신규회원이신가요? </span>
-          <Link to="/register" className="link-text bold">
-            회원가입
-          </Link>
-        </div>
-      </form>
-    </div>
+          <Button type="LOGIN" text="로그인" />
+
+          <div className="signup-row">
+            <span>신규회원이신가요? </span>
+            <Link to="/register" className="link-text bold">
+              회원가입
+            </Link>
+          </div>
+        </form>
+      </div>
+    </>
   );
 }
