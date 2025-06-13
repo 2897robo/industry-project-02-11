@@ -1,0 +1,79 @@
+version: "3.8"
+
+services:
+  eureka-service:
+    build: ./apps/eureka-discovery-service
+    container_name: team11-eureka
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    networks:
+      - team11-network
+
+  gateway-service:
+    build: ./apps/gateway-service
+    container_name: team11-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka/
+    depends_on:
+      - eureka-service
+    networks:
+      - team11-network
+
+  auth-service:
+    build: ./apps/auth-service
+    container_name: team11-auth
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka/
+    depends_on:
+      - eureka-service
+      - postgres
+    networks:
+      - team11-network
+
+  user-service:
+    build: ./apps/user-service
+    container_name: team11-user
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka/
+    depends_on:
+      - eureka-service
+      - postgres
+    networks:
+      - team11-network
+
+  backend-service:
+    build: ./apps/backend
+    container_name: team11-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/team11
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      - eureka-service
+      - postgres
+      - redis
+    networks:
+      - team11-network
+
+  frontend:
+    build: ./apps/front
+    container_name: team11-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    networks:
+      - team11-network
+
+networks:
+  team11-network:
+    driver: bridge
