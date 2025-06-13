@@ -30,6 +30,9 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/team11
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
     depends_on:
       - eureka-service
       - postgres
@@ -42,6 +45,9 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/team11
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
     depends_on:
       - eureka-service
       - postgres
@@ -57,6 +63,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/team11
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
     depends_on:
       - eureka-service
       - postgres
@@ -71,6 +79,20 @@ services:
       - "5173:5173"
     environment:
       - VITE_API_URL=http://localhost:8000
+    networks:
+      - team11-network
+
+  postgres:
+    extends:
+      file: docker-compose.yml
+      service: postgres
+    networks:
+      - team11-network
+
+  redis:
+    extends:
+      file: docker-compose.yml
+      service: redis
     networks:
       - team11-network
 
