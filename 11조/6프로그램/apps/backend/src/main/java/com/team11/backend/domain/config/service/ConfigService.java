@@ -22,8 +22,8 @@ public class ConfigService {
 
     private final ConfigRepository configRepository;
 
-    public long createConfig(String userId, CreateConfigRequest request) {
-        return configRepository.save(request.toEntity(userId)).getId();
+    public long createConfig(String userUid, CreateConfigRequest request) {
+        return configRepository.save(request.toEntity(userUid)).getId();
     }
 
     public void updateConfig(UpdateConfigRequest request) {
@@ -37,14 +37,14 @@ public class ConfigService {
         }
 
         if(request.budgetLimit() != null && !request.budgetLimit().equals(config.getBudgetLimit())) {
-            config.updateIdleThreshold(request.idleThreshold());
+            config.updateBudgetLimit(request.budgetLimit());
         }
     }
 
     @Transactional(readOnly = true)
-    public ReadConfigResponse getByUserId(String userId) {
+    public ReadConfigResponse getByUserUid(String userUid) {
 
-        Config config = configRepository.findByUserId(userId)
+        Config config = configRepository.findByUserUid(userUid)
                 .orElseThrow(() -> new ApplicationException(
                         ErrorStatus.toErrorStatus("해당하는 config가 없습니다.", 404, LocalDateTime.now())
                 ));
@@ -52,7 +52,7 @@ public class ConfigService {
         return ReadConfigResponse.fromEntity(config);
     }
 
-    public void deleteByUserId(String userId) {
-        configRepository.deleteByUserId(userId);
+    public void deleteByUserUid(String userUid) {
+        configRepository.deleteByUserUid(userUid);
     }
 }

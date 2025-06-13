@@ -20,8 +20,8 @@ public class Alert {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id")
-    private String userId;
+    @Column(name = "user_uid")
+    private String userUid;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "alert_type", length = 50)
@@ -38,9 +38,9 @@ public class Alert {
     private ChannelType channel;
 
     @Builder
-    public Alert(Long id, String userId, AlertType alertType, String message, LocalDateTime sentAt, ChannelType channel) {
+    public Alert(Long id, String userUid, AlertType alertType, String message, LocalDateTime sentAt, ChannelType channel) {
         this.id = id;
-        this.userId = userId;
+        this.userUid = userUid;
         this.alertType = alertType;
         this.message = message;
         this.sentAt = sentAt;

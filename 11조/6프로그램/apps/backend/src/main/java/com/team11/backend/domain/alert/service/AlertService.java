@@ -20,7 +20,7 @@ public class AlertService {
         alertRepository.save(request.toEntity());
     }
 
-    public List<ReadAlertResponse> getByUserId(String uid) {
-        return alertRepository.findByUserId(uid).stream().map(ReadAlertResponse::fromEntity).toList();
+    public List<ReadAlertResponse> getByUserUid(String uid) {
+        return alertRepository.findByUserUid(uid).stream().map(ReadAlertResponse::fromEntity).toList();
     }
 }

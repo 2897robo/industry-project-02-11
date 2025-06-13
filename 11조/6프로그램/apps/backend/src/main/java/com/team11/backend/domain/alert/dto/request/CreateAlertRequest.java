@@ -7,14 +7,14 @@ import com.team11.backend.domain.alert.entity.type.ChannelType;
 import java.time.LocalDateTime;
 
 public record CreateAlertRequest(
-        String userId,
+        String userUid,
         AlertType alertType,
         String message,
         ChannelType channel
 ) {
     public Alert toEntity() {
         return Alert.builder()
-                .userId(userId)
+                .userUid(userUid)
                 .alertType(alertType)
                 .sentAt(LocalDateTime.now())
                 .message(message)
