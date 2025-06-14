@@ -26,7 +26,7 @@ public class TokenProvider {
     private final SecretKey secretKey;
     private final TokenService tokenService;
 
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 2;
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 1;
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60L * 24;
 
     @Autowired

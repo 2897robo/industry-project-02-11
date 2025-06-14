@@ -24,6 +24,9 @@ spring:
               - OPTIONS
             allowedHeaders: "*"
             allowCredentials: true
+            exposedHeaders:
+              - "Authorization"
+              - "authorization"
       routes:
         - id: user-service
           uri: lb://USER-SERVICE/

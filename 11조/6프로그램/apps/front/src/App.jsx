@@ -16,8 +16,11 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/" element={<PrivateRoute element={<Resource />} />} />
-      <Route path="/mypage" element={<MyPage />} />
-      <Route path="/resource" element={<Resource />} />
+      <Route path="/mypage" element={<PrivateRoute element={<MyPage />} />} />
+      <Route
+        path="/resource"
+        element={<PrivateRoute element={<Resource />} />}
+      />
       <Route
         path="/dashboard/:id"
         element={<PrivateRoute element={<Dashboard />} />}
