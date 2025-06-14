@@ -721,6 +721,13 @@ const Dashboard = () => {
             text={"< 뒤로가기"}
           />
         }
+        rightChild={
+          <Button
+            onClick={() => nav("/mypage")}
+            text={"마이페이지"}
+            type="default"
+          />
+        }
       />
       <div style={styles.container}>
         <style>{cssAnimation}</style>

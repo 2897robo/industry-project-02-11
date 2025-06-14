@@ -197,13 +197,6 @@ const Register = () => {
       <Header
         title={"회원가입"}
         leftChild={<Button onClick={() => nav(-1)} text={"< 뒤로가기"} />}
-        rightChild={
-          <Button
-            onClick={() => nav("/mypage")}
-            text={"마이페이지"}
-            type="default"
-          />
-        }
       />
 
       <div className="form-row">

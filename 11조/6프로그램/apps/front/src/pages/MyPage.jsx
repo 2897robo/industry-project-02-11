@@ -16,7 +16,7 @@ import Button from "../components/Button";
 import axiosInstance from "../utils/axiosInstance";
 
 const MyProfile = () => {
-  const navigate = useNavigate();
+  const nav = useNavigate();
 
   // 사용자 정보 상태
   const [userInfo, setUserInfo] = useState({
@@ -406,7 +406,14 @@ const MyProfile = () => {
       <>
         <Header
           title="마이페이지"
-          leftChild={<Button onClick={() => navigate(-1)} text="< 뒤로가기" />}
+          leftChild={<Button onClick={() => nav(-1)} text="< 뒤로가기" />}
+          rightChild={
+            <Button
+              onClick={() => nav("/")}
+              text={"마이페이지"}
+              type="default"
+            />
+          }
         />
         <div style={styles.container}>
           <style>{cssAnimation}</style>
@@ -429,7 +436,7 @@ const MyProfile = () => {
     <>
       <Header
         title="마이페이지"
-        leftChild={<Button onClick={() => navigate(-1)} text="< 뒤로가기" />}
+        leftChild={<Button onClick={() => nav(-1)} text="< 뒤로가기" />}
       />
       <div style={styles.container}>
         <style>{cssAnimation}</style>
