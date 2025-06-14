@@ -2,6 +2,7 @@ package com.team11.user.userservice.presentation.controller;
 
 import com.team11.user.userservice.application.service.UserService;
 import com.team11.user.userservice.presentation.dto.request.CreateUserRequest;
+import com.team11.user.userservice.presentation.dto.request.UpdateUserRequest;
 import com.team11.user.userservice.presentation.dto.response.ReadUserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,5 +36,11 @@ public class UserController {
     @GetMapping("/check")
     public ResponseEntity<Boolean> confirmDuplicate(@RequestParam("uid") String uid) {
         return ResponseEntity.ok(userService.confirmDuplicate(uid));
+    }
+
+    @PutMapping
+    public ResponseEntity<Void> updateUser(@AuthenticationPrincipal UserDetails user, @RequestBody UpdateUserRequest request)  {
+        userService.updateUser(user.getUsername(), request);
+        return ResponseEntity.noContent().build();
     }
 }

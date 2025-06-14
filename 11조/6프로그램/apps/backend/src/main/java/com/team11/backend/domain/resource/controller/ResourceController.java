@@ -1,69 +1,81 @@
 package com.team11.backend.domain.resource.controller;
 
 import com.team11.backend.domain.resource.dto.ResourceDto;
+import com.team11.backend.domain.resource.entity.type.AwsServiceType;
 import com.team11.backend.domain.resource.service.ResourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/resources")
+@RequestMapping("/api/resources")
 @RequiredArgsConstructor
 public class ResourceController {
 
     private final ResourceService resourceService;
 
-    // 리소스 생성 (Create)
-    @PostMapping
-    public ResponseEntity<ResourceDto.Response> createResource(@RequestBody ResourceDto.CreateRequest request) {
-        ResourceDto.Response response = resourceService.createResource(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    // 모든 리소스 조회 (Read all)
+    // 내 리소스 목록 조회
     @GetMapping
-    public ResponseEntity<List<ResourceDto.Response>> getAllResources() {
-        List<ResourceDto.Response> responses = resourceService.getAllResources();
+    public ResponseEntity<List<ResourceDto.Response>> getMyResources(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String userUid = userDetails.getUsername();
+        List<ResourceDto.Response> responses = resourceService.getResourcesByUserUid(userUid);
         return ResponseEntity.ok(responses);
     }
 
-    // ID로 리소스 조회 (Read by ID)
+    // 서비스 타입별 리소스 조회
+    @GetMapping("/by-service-type/{serviceType}")
+    public ResponseEntity<List<ResourceDto.Response>> getResourcesByServiceType(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable AwsServiceType serviceType) {
+        String userUid = userDetails.getUsername();
+        List<ResourceDto.Response> responses = resourceService.getResourcesByUserUidAndServiceType(userUid, serviceType);
+        return ResponseEntity.ok(responses);
+    }
+
+    // 유휴 리소스만 조회
+    @GetMapping("/idle")
+    public ResponseEntity<List<ResourceDto.Response>> getIdleResources(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String userUid = userDetails.getUsername();
+        List<ResourceDto.Response> responses = resourceService.getIdleResourcesByUserUid(userUid);
+        return ResponseEntity.ok(responses);
+    }
+
+    // 특정 리소스 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<ResourceDto.Response> getResourceById(@PathVariable Long id) {
+    public ResponseEntity<ResourceDto.Response> getResourceById(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id) {
+        String userUid = userDetails.getUsername();
+        // 권한 체크는 서비스 레이어에서 처리
         ResourceDto.Response response = resourceService.getResourceById(id);
         return ResponseEntity.ok(response);
     }
 
-    // 사용자 ID로 리소스 목록 조회 (Read by User ID)
-    @GetMapping("/by-user/{userId}")
-    public ResponseEntity<List<ResourceDto.Response>> getResourcesByUserId(@PathVariable Long userId) {
-        List<ResourceDto.Response> responses = resourceService.getResourcesByUserId(userId);
-        return ResponseEntity.ok(responses);
-    }
-
-    // AWS 리소스 ID로 리소스 조회 (Read by AWS Resource ID)
-    @GetMapping("/by-aws-resource-id/{awsResourceId}")
-    public ResponseEntity<ResourceDto.Response> getResourceByAwsResourceId(@PathVariable String awsResourceId) {
-        ResourceDto.Response response = resourceService.getResourceByAwsResourceId(awsResourceId);
-        return ResponseEntity.ok(response);
-    }
-
-    // 리소스 업데이트 (Update)
+    // 리소스 업데이트 (관리자용)
     @PutMapping("/{id}")
     public ResponseEntity<ResourceDto.Response> updateResource(
+            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id,
             @RequestBody ResourceDto.UpdateRequest request) {
-        ResourceDto.Response response = resourceService.updateResource(id, request);
+        String userUid = userDetails.getUsername();
+        ResourceDto.Response response = resourceService.updateResource(userUid, id, request);
         return ResponseEntity.ok(response);
     }
 
-    // 리소스 삭제 (Delete)
+    // 리소스 삭제 (관리자용)
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteResource(@PathVariable Long id) {
-        resourceService.deleteResource(id);
+    public ResponseEntity<Void> deleteResource(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id) {
+        String userUid = userDetails.getUsername();
+        resourceService.deleteResource(userUid, id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -16,15 +16,12 @@ CREATE TABLE configs (
                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- ✅ ENUM 타입 정의
-CREATE TYPE aws_service_type AS ENUM ('EC2', 'RDS', 'EBS', 'S3', 'Lambda');
-
 -- ✅ 리소스(EC2, RDS 등) 정보 테이블
 CREATE TABLE resources (
                            id SERIAL PRIMARY KEY,
                            user_id INTEGER REFERENCES users(id),             -- 리소스 소유자
                            aws_resource_id VARCHAR(100),                     -- AWS 리소스 ID (ex. i-123abc)
-                           service_type aws_service_type,                    -- 서비스 타입 (ENUM: EC2, RDS, EBS 등)
+                           service_type VARCHAR(50),                         -- 서비스 타입 (EC2, RDS, EBS 등)
                            region VARCHAR(50),                               -- AWS 리전 정보 (ap-northeast-2 등)
                            is_idle BOOLEAN DEFAULT FALSE,                    -- 유휴 상태 여부
                            usage_rate FLOAT,                                 -- 최근 CPU 사용률 등 사용률 %

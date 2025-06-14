@@ -22,7 +22,7 @@ public class AlertController {
 
     @GetMapping
     public ResponseEntity<List<ReadAlertResponse>> getAlertResponse(@AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(alertService.getByUserId(user.getUsername()));
+        return ResponseEntity.ok(alertService.getByUserUid(user.getUsername()));
     }
 
     @PostMapping

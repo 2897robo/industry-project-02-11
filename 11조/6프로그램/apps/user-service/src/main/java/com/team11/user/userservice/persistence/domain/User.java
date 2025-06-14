@@ -25,6 +25,9 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    @Column(nullable = false, length = 255, unique = true)
+    private String email;
+
     @Column(length = 100)
     private String name;
 
@@ -33,11 +36,24 @@ public class User {
     private LocalDateTime createdAt;
 
     @Builder
-    public User(Long id, String uid, String passwordHash, String name, LocalDateTime createdAt) {
+    public User(Long id, String uid, String passwordHash, String email, String name, LocalDateTime createdAt) {
         this.id = id;
         this.uid = uid;
         this.passwordHash = passwordHash;
+        this.email = email;
         this.name = name;
         this.createdAt = createdAt;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    public void updatePassword(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 }

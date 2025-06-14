@@ -16,7 +16,7 @@ public class ResourceDto {
     @AllArgsConstructor
     @Builder
     public static class CreateRequest {
-        private Long userId;
+        private String userUid;
         private String awsResourceId;
         private AwsServiceType serviceType;
         private String region;
@@ -45,7 +45,7 @@ public class ResourceDto {
     @Builder
     public static class Response {
         private Long id;
-        private Long userId;
+        private String userUid;
         private String awsResourceId;
         private AwsServiceType serviceType;
         private String region;
@@ -58,7 +58,7 @@ public class ResourceDto {
         public static Response from(Resource resource) {
             return Response.builder()
                     .id(resource.getId())
-                    .userId(resource.getUserId())
+                    .userUid(resource.getUserUid())
                     .awsResourceId(resource.getAwsResourceId())
                     .serviceType(resource.getServiceType())
                     .region(resource.getRegion())

@@ -25,6 +25,25 @@ public class AES256Cipher {
         IV = aesIv;
     }
 
+    // 편의 메서드 추가
+    public String encrypt(String str) {
+        try {
+            return AES_Encode(str);
+        } catch (Exception e) {
+            log.error("암호화 실패: {}", e.getMessage());
+            throw new RuntimeException("암호화 실패", e);
+        }
+    }
+
+    public String decrypt(String str) {
+        try {
+            return AES_Decode(str);
+        } catch (Exception e) {
+            log.error("복호화 실패: {}", e.getMessage());
+            throw new RuntimeException("복호화 실패", e);
+        }
+    }
+
     public String AES_Encode(String str) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
         byte[] keyData = secretKey.getBytes();
 

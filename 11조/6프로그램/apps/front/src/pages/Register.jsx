@@ -13,6 +13,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingUid, setIsCheckingUid] = useState(false);
@@ -21,37 +22,38 @@ const Register = () => {
   const handleUidChange = (e) => {
     setUid(e.target.value);
     setUidCheck(false);
-    setCheckMessage(""); // 기존 메시지 초기화
+    setCheckMessage("");
     setErrorMessage("");
   };
 
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
-    setErrorMessage(""); // 에러 메시지 초기화
+    setErrorMessage("");
   };
 
   const handlePasswordConfirmChange = (e) => {
     setPasswordConfirm(e.target.value);
-    setErrorMessage(""); // 에러 메시지 초기화
+    setErrorMessage("");
   };
 
   const handleUsernameChange = (e) => {
     setUsername(e.target.value);
-    setErrorMessage(""); // 에러 메시지 초기화
+    setErrorMessage("");
   };
 
-  // 아이디 유효성 검사
-  const validateUid = (uid) => {
-    const uidRegex = /^[a-zA-Z0-9]{4,20}$/;
-    return uidRegex.test(uid);
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    setErrorMessage("");
   };
 
-  // 비밀번호 유효성 검사
-  const validatePassword = (password) => {
-    const passwordRegex =
-      /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
-    return passwordRegex.test(password);
-  };
+  const validateUid = (uid) => /^[a-zA-Z0-9]{4,20}$/.test(uid);
+
+  const validatePassword = (password) =>
+    /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(
+      password
+    );
+
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleUidCheck = async () => {
     if (!uid.trim()) {
@@ -84,7 +86,6 @@ const Register = () => {
       }
     } catch (error) {
       console.error("중복 확인 에러", error);
-
       if (error.response?.status === 400) {
         setCheckMessage("잘못된 요청입니다. 아이디를 확인해주세요.");
       } else if (error.response?.status >= 500) {
@@ -101,7 +102,6 @@ const Register = () => {
   const handleSubmit = async () => {
     setErrorMessage("");
 
-    // 입력값 검증
     if (!uid.trim()) {
       setErrorMessage("아이디를 입력해주세요.");
       return;
@@ -109,6 +109,16 @@ const Register = () => {
 
     if (!uidCheck) {
       setErrorMessage("아이디 중복 확인이 필요합니다.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setErrorMessage("이메일을 입력해주세요.");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setErrorMessage("유효한 이메일 주소를 입력해주세요.");
       return;
     }
 
@@ -151,6 +161,7 @@ const Register = () => {
         uid: uid.trim(),
         password,
         name: username.trim(),
+        email: email.trim(),
       });
 
       if (
@@ -165,7 +176,6 @@ const Register = () => {
       }
     } catch (error) {
       console.error("회원가입 에러", error);
-
       if (error.response?.status === 400) {
         setErrorMessage("입력 정보를 확인해주세요.");
       } else if (error.response?.status === 409) {
@@ -175,9 +185,7 @@ const Register = () => {
       } else if (error.response?.status >= 500) {
         setErrorMessage("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       } else {
-        setErrorMessage(
-          "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요."
-        );
+        setErrorMessage("네트워크 오류가 발생했습니다.");
       }
     } finally {
       setIsLoading(false);
@@ -188,16 +196,8 @@ const Register = () => {
     <div className="signup-form">
       <Header
         title={"회원가입"}
-        leftChild={
-          <Button
-            onClick={() => {
-              nav(-1);
-            }}
-            text={"< 뒤로가기"}
-          />
-        }
+        leftChild={<Button onClick={() => nav(-1)} text={"< 뒤로가기"} />}
       />
-      {/* <h1 className="signup-title">회원가입</h1> */}
 
       <div className="form-row">
         <Input
@@ -222,6 +222,17 @@ const Register = () => {
           {checkMessage}
         </p>
       )}
+
+      {/* ✅ 이메일 입력 필드 */}
+      <Input
+        type="email"
+        name="email"
+        value={email}
+        onChange={handleEmailChange}
+        className="input"
+        placeholder="이메일을 입력해주세요."
+        disabled={isLoading}
+      />
 
       <Input
         type="password"

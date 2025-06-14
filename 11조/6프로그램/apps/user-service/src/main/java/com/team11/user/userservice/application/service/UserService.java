@@ -2,6 +2,7 @@ package com.team11.user.userservice.application.service;
 
 import com.team11.user.userservice.persistence.domain.User;
 import com.team11.user.userservice.presentation.dto.request.CreateUserRequest;
+import com.team11.user.userservice.presentation.dto.request.UpdateUserRequest;
 import com.team11.user.userservice.presentation.dto.response.ReadUserResponse;
 import com.team11.user.userservice.persistence.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -45,5 +46,23 @@ public class UserService {
 
     public boolean confirmDuplicate(String uid) {
         return userRepository.existsByUid(uid);
+    }
+
+    public void updateUser(String uid, UpdateUserRequest request) {
+
+        User user = userRepository.findByUid(uid)
+                .orElseThrow(() -> new RuntimeException("유저가 존재하지 않습니다."));
+
+        if(request.name() != null && !request.name().equals(user.getName())) {
+            user.updateName(request.name());
+        }
+
+        if(request.email() != null && !request.email().equals(user.getEmail())) {
+            user.updateEmail(request.email());
+        }
+
+        if(request.newPassword() != null && passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            user.updatePassword(passwordEncoder.encode(request.newPassword()));
+        }
     }
 }

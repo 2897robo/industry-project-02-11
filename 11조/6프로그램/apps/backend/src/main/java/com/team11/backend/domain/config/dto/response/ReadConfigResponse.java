@@ -6,14 +6,14 @@ import lombok.Builder;
 @Builder
 public record ReadConfigResponse(
         Long id,
-        String userId,
+        String userUid,
         Float idleThreshold,
         Integer budgetLimit
 ) {
     public static ReadConfigResponse fromEntity(Config config) {
         return ReadConfigResponse.builder()
                 .id(config.getId())
-                .userId(config.getUserId())
+                .userUid(config.getUserUid())
                 .idleThreshold(config.getIdleThreshold())
                 .budgetLimit(config.getBudgetLimit())
                 .build();

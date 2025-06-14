@@ -83,4 +83,24 @@ public class RecommendationService {
         }
         recommendationRepository.deleteById(id);
     }
+
+    // 사용자의 모든 추천 조회
+    public List<RecommendationDto.Response> getRecommendationsByUserUid(String userUid) {
+        return recommendationRepository.findByUserUid(userUid).stream()
+                .map(RecommendationDto.Response::from)
+                .collect(Collectors.toList());
+    }
+
+    // 사용자의 pending 상태 추천만 조회
+    public List<RecommendationDto.Response> getPendingRecommendationsByUserUid(String userUid) {
+        return recommendationRepository.findPendingByUserUid(userUid).stream()
+                .map(RecommendationDto.Response::from)
+                .collect(Collectors.toList());
+    }
+
+    // 사용자의 총 예상 절감액 계산
+    public Float getTotalExpectedSaving(String userUid) {
+        Float totalSaving = recommendationRepository.calculateTotalExpectedSavingByUserUid(userUid);
+        return totalSaving != null ? totalSaving : 0.0f;
+    }
 }
