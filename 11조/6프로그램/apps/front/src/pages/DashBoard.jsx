@@ -51,6 +51,8 @@ const Dashboard = () => {
   const [costLoading, setCostLoading] = useState(true);
   const [chartType, setChartType] = useState("daily");
   const [error, setError] = useState(null);
+  const [idleResources, setIdleResources] = useState([]);
+  const [idleResourcesLoading, setIdleResourcesLoading] = useState(true);
 
   // 단일 차트 ref와 인스턴스만 사용
   const chartRef = useRef(null);
@@ -91,6 +93,24 @@ const Dashboard = () => {
       setResources([]);
     } finally {
       setResourcesLoading(false);
+    }
+  };
+
+  // 유휴 리소스 데이터를 백엔드에서 가져오는 함수
+  const fetchIdleResources = async () => {
+    try {
+      setIdleResourcesLoading(true);
+      setError(null);
+      const response = await axiosInstance.get(
+        `/resource-service/api/resources/idle`
+      );
+      setIdleResources(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("유휴 리소스 데이터 로드 실패:", error);
+      setError("유휴 리소스 데이터를 불러올 수 없습니다.");
+      setIdleResources([]);
+    } finally {
+      setIdleResourcesLoading(false);
     }
   };
 
@@ -147,6 +167,7 @@ const Dashboard = () => {
       fetchRecommendations();
       fetchResources();
       fetchCostData();
+      fetchIdleResources();
     }
   }, [id]);
 
@@ -482,7 +503,7 @@ const Dashboard = () => {
     },
     gridContainer: {
       display: "grid",
-      gridTemplateColumns: "50% 25% 25%",
+      gridTemplateColumns: "40% 20% 20% 20%",
       gap: "24px",
       height: "90vh",
     },
@@ -996,6 +1017,98 @@ const Dashboard = () => {
                           <span style={styles.dateText}>
                             {formatDate(
                               resource.createdAt || resource.launchTime
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 네 번째: 유휴 리소스 섹션 */}
+            <div style={styles.card}>
+              <div style={styles.header}>
+                <div style={styles.headerLeft}>
+                  <AlertCircle size={24} color="#f59e0b" />
+                  <h2 style={styles.headerTitle}>유휴 리소스</h2>
+                </div>
+              </div>
+
+              <div style={styles.listContainer}>
+                {idleResourcesLoading ? (
+                  <div style={styles.loadingContainer}>
+                    <div style={styles.spinner}></div>
+                    <span style={styles.loadingText}>로딩 중...</span>
+                  </div>
+                ) : idleResources.length === 0 ? (
+                  <div style={styles.emptyState}>
+                    <AlertCircle
+                      size={32}
+                      color="#d1d5db"
+                      style={{ marginBottom: "12px" }}
+                    />
+                    <p>유휴 리소스가 없습니다</p>
+                  </div>
+                ) : (
+                  <div>
+                    {idleResources.map((resource) => (
+                      <div
+                        key={resource.id}
+                        style={styles.itemCard}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.boxShadow =
+                            styles.itemCardHover.boxShadow;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.boxShadow = "none";
+                        }}
+                      >
+                        <div style={styles.itemHeader}>
+                          <span style={styles.itemTitle}>
+                            {resource.resourceType || "리소스"} #{resource.id}
+                          </span>
+                          <div style={styles.statusBadge}>
+                            <AlertCircle size={14} color="#f59e0b" />
+                            <span>유휴</span>
+                          </div>
+                        </div>
+
+                        <div style={styles.detailItem}>
+                          <Server size={14} color="#6b7280" />
+                          <span style={styles.detailText}>
+                            {resource.instanceType ||
+                              resource.resourceName ||
+                              "정보 없음"}
+                          </span>
+                        </div>
+
+                        {resource.idleDuration && (
+                          <div style={styles.detailItem}>
+                            <Clock size={14} color="#f59e0b" />
+                            <span style={styles.detailText}>
+                              유휴 기간: {resource.idleDuration}
+                            </span>
+                          </div>
+                        )}
+
+                        {resource.wasteCost && (
+                          <div style={styles.detailItem}>
+                            <DollarSign size={14} color="#dc2626" />
+                            <span
+                              style={{ ...styles.detailText, color: "#dc2626" }}
+                            >
+                              낭비 비용: ${resource.wasteCost}/월
+                            </span>
+                          </div>
+                        )}
+
+                        <div style={styles.detailItem}>
+                          <Clock size={14} color="#9ca3af" />
+                          <span style={styles.dateText}>
+                            {formatDate(
+                              resource.lastUsed || resource.createdAt
                             )}
                           </span>
                         </div>

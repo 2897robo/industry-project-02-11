@@ -7,7 +7,6 @@ import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./routes/PrivateRoute";
 import Resource from "./pages/Resource";
-import ExampleDashBoard from "./pages/ExampleDashBoard";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -23,7 +22,6 @@ function App() {
         path="/dashboard/:id"
         element={<PrivateRoute element={<Dashboard />} />}
       />
-      <Route path="/example/dashboard" element={<ExampleDashBoard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
