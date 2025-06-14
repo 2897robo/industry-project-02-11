@@ -30,6 +30,8 @@ Chart.Chart.register(
   Chart.LineElement,
   Chart.BarElement,
   Chart.LineController,
+  Chart.BarController,
+  Chart.DoughnutController,
   Chart.Title,
   Chart.Tooltip,
   Chart.Legend,
@@ -37,21 +39,21 @@ Chart.Chart.register(
 );
 
 const Dashboard = () => {
-  const { id } = useParams(); // URL에서 대시보드 id 추출
+  const { id } = useParams();
   const [recommendations, setRecommendations] = useState([]);
   const [resources, setResources] = useState([]);
-  const [costData, setCostData] = useState(null);
+  const [dailyCostTrend, setDailyCostTrend] = useState(null);
   const [serviceCostData, setServiceCostData] = useState([]);
   const [monthlyTrendData, setMonthlyTrendData] = useState([]);
   const [currentMonthSummary, setCurrentMonthSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [resourcesLoading, setResourcesLoading] = useState(true);
   const [costLoading, setCostLoading] = useState(true);
-  const [chartType, setChartType] = useState("daily"); // 'daily', 'service', 'monthly'
+  const [chartType, setChartType] = useState("daily");
+  const [error, setError] = useState(null);
 
-  const dailyChartRef = useRef(null);
-  const serviceChartRef = useRef(null);
-  const monthlyChartRef = useRef(null);
+  // 단일 차트 ref와 인스턴스만 사용
+  const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
 
   const nav = useNavigate();
@@ -60,12 +62,14 @@ const Dashboard = () => {
   const fetchRecommendations = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await axiosInstance.get(
         `/resource-service/api/recommendations`
       );
-      setRecommendations(response.data || []);
+      setRecommendations(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("추천 데이터 로드 실패:", error);
+      setError("추천 데이터를 불러올 수 없습니다.");
       setRecommendations([]);
     } finally {
       setLoading(false);
@@ -76,12 +80,14 @@ const Dashboard = () => {
   const fetchResources = async () => {
     try {
       setResourcesLoading(true);
+      setError(null);
       const response = await axiosInstance.get(
         `/resource-service/api/resources`
       );
-      setResources(response.data || []);
+      setResources(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("리소스 데이터 로드 실패:", error);
+      setError("리소스 데이터를 불러올 수 없습니다.");
       setResources([]);
     } finally {
       setResourcesLoading(false);
@@ -92,9 +98,10 @@ const Dashboard = () => {
   const fetchCostData = async () => {
     try {
       setCostLoading(true);
+      setError(null);
       const endDate = new Date();
       const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30); // 최근 30일
+      startDate.setDate(startDate.getDate() - 30);
 
       // 일별 비용 추이
       const dailyResponse = await axiosInstance.get(
@@ -102,7 +109,7 @@ const Dashboard = () => {
           startDate.toISOString().split("T")[0]
         }&endDate=${endDate.toISOString().split("T")[0]}`
       );
-      setCostData(dailyResponse.data);
+      setDailyCostTrend(dailyResponse.data);
 
       // 서비스별 비용 요약
       const serviceResponse = await axiosInstance.get(
@@ -110,13 +117,17 @@ const Dashboard = () => {
           startDate.toISOString().split("T")[0]
         }&endDate=${endDate.toISOString().split("T")[0]}`
       );
-      setServiceCostData(serviceResponse.data || []);
+      setServiceCostData(
+        Array.isArray(serviceResponse.data) ? serviceResponse.data : []
+      );
 
-      // 월별 비용 추이 (최근 6개월)
+      // 월별 비용 추이
       const monthlyResponse = await axiosInstance.get(
         `/resource-service/api/cost-history/monthly-trend?months=6`
       );
-      setMonthlyTrendData(monthlyResponse.data || []);
+      setMonthlyTrendData(
+        Array.isArray(monthlyResponse.data) ? monthlyResponse.data : []
+      );
 
       // 현재 월 요약
       const currentMonthResponse = await axiosInstance.get(
@@ -125,6 +136,7 @@ const Dashboard = () => {
       setCurrentMonthSummary(currentMonthResponse.data);
     } catch (error) {
       console.error("비용 데이터 로드 실패:", error);
+      setError("비용 데이터를 불러올 수 없습니다.");
     } finally {
       setCostLoading(false);
     }
@@ -138,34 +150,66 @@ const Dashboard = () => {
     }
   }, [id]);
 
-  // 차트 생성 함수
-  const createChart = () => {
+  // 차트 인스턴스 정리 함수
+  const destroyChart = () => {
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
+      chartInstanceRef.current = null;
+    }
+  };
+
+  // 차트 생성 함수
+  const createChart = () => {
+    // 이전 차트 인스턴스 정리
+    destroyChart();
+
+    const canvas = chartRef.current;
+    if (!canvas) {
+      console.log("Canvas not found");
+      return;
     }
 
-    const canvas =
-      chartType === "daily"
-        ? dailyChartRef.current
-        : chartType === "service"
-        ? serviceChartRef.current
-        : monthlyChartRef.current;
-
-    if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      console.log("Context not found");
+      return;
+    }
 
-    let chartConfig = {};
+    let chartConfig = null;
 
-    if (chartType === "daily" && costData) {
+    // 차트 타입별 설정
+    if (chartType === "daily") {
+      if (
+        !dailyCostTrend ||
+        !Array.isArray(dailyCostTrend.dailyCosts) ||
+        dailyCostTrend.dailyCosts.length === 0
+      ) {
+        console.log("Daily cost data not available");
+        return;
+      }
+
+      const dates = dailyCostTrend.dailyCosts.map((item) => {
+        try {
+          return new Date(item.date).toLocaleDateString("ko-KR", {
+            month: "short",
+            day: "numeric",
+          });
+        } catch {
+          return item.date;
+        }
+      });
+      const costs = dailyCostTrend.dailyCosts.map((item) =>
+        parseFloat(item.totalCost || 0)
+      );
+
       chartConfig = {
         type: "line",
         data: {
-          labels: costData.dates || [],
+          labels: dates,
           datasets: [
             {
               label: "일별 비용 ($)",
-              data: costData.costs || [],
+              data: costs,
               borderColor: "#2563eb",
               backgroundColor: "rgba(37, 99, 235, 0.1)",
               borderWidth: 2,
@@ -199,7 +243,12 @@ const Dashboard = () => {
           },
         },
       };
-    } else if (chartType === "service" && serviceCostData.length > 0) {
+    } else if (chartType === "service") {
+      if (!Array.isArray(serviceCostData) || serviceCostData.length === 0) {
+        console.log("Service cost data not available");
+        return;
+      }
+
       const colors = [
         "#2563eb",
         "#dc2626",
@@ -216,10 +265,12 @@ const Dashboard = () => {
       chartConfig = {
         type: "doughnut",
         data: {
-          labels: serviceCostData.map((item) => item.serviceName),
+          labels: serviceCostData.map((item) => item.serviceName || "Unknown"),
           datasets: [
             {
-              data: serviceCostData.map((item) => item.totalCost),
+              data: serviceCostData.map((item) =>
+                parseFloat(item.totalCost || 0)
+              ),
               backgroundColor: colors.slice(0, serviceCostData.length),
               borderWidth: 2,
               borderColor: "#ffffff",
@@ -241,10 +292,11 @@ const Dashboard = () => {
               callbacks: {
                 label: function (context) {
                   const total = serviceCostData.reduce(
-                    (sum, item) => sum + item.totalCost,
+                    (sum, item) => sum + parseFloat(item.totalCost || 0),
                     0
                   );
-                  const percentage = ((context.raw / total) * 100).toFixed(1);
+                  const percentage =
+                    total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
                   return `${context.label}: $${context.raw.toFixed(
                     2
                   )} (${percentage}%)`;
@@ -254,17 +306,29 @@ const Dashboard = () => {
           },
         },
       };
-    } else if (chartType === "monthly" && monthlyTrendData.length > 0) {
+    } else if (chartType === "monthly") {
+      if (!Array.isArray(monthlyTrendData) || monthlyTrendData.length === 0) {
+        console.log("Monthly trend data not available");
+        return;
+      }
+
       chartConfig = {
         type: "bar",
         data: {
-          labels: monthlyTrendData.map(
-            (item) => `${item.year}-${String(item.month).padStart(2, "0")}`
-          ),
+          labels: monthlyTrendData.map((item) => {
+            try {
+              const [year, month] = item.month.split("-");
+              return `${month}월`;
+            } catch {
+              return item.month;
+            }
+          }),
           datasets: [
             {
               label: "월별 비용 ($)",
-              data: monthlyTrendData.map((item) => item.totalCost),
+              data: monthlyTrendData.map((item) =>
+                parseFloat(item.totalCost || 0)
+              ),
               backgroundColor: "rgba(37, 99, 235, 0.8)",
               borderColor: "#2563eb",
               borderWidth: 1,
@@ -298,32 +362,45 @@ const Dashboard = () => {
       };
     }
 
-    if (chartConfig.type) {
-      chartInstanceRef.current = new Chart.Chart(ctx, chartConfig);
+    // 차트 생성
+    if (chartConfig) {
+      try {
+        chartInstanceRef.current = new Chart.Chart(ctx, chartConfig);
+        console.log(`Chart created successfully: ${chartType}`);
+      } catch (error) {
+        console.error("차트 생성 실패:", error);
+      }
     }
   };
 
+  // 차트 타입이 변경되거나 데이터가 로드되면 차트를 다시 생성
   useEffect(() => {
-    if (
-      !costLoading &&
-      (costData || serviceCostData.length > 0 || monthlyTrendData.length > 0)
-    ) {
-      // 약간의 딜레이를 주어 DOM이 완전히 렌더링된 후 차트 생성
-      setTimeout(() => {
+    if (!costLoading) {
+      const timer = setTimeout(() => {
         createChart();
       }, 100);
-    }
 
+      return () => clearTimeout(timer);
+    }
+  }, [
+    chartType,
+    dailyCostTrend,
+    serviceCostData,
+    monthlyTrendData,
+    costLoading,
+  ]);
+
+  // 컴포넌트 언마운트 시 차트 정리
+  useEffect(() => {
     return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-      }
+      destroyChart();
     };
-  }, [chartType, costData, serviceCostData, monthlyTrendData, costLoading]);
+  }, []);
 
   // 상태에 따른 아이콘 반환
   const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
+    const statusLower = (status || "").toLowerCase();
+    switch (statusLower) {
       case "completed":
       case "적용됨":
         return <CheckCircle size={16} color="#059669" />;
@@ -340,8 +417,10 @@ const Dashboard = () => {
 
   // 날짜 포맷팅
   const formatDate = (dateString) => {
+    if (!dateString) return "날짜 없음";
     try {
       const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "날짜 오류";
       return date.toLocaleDateString("ko-KR", {
         year: "numeric",
         month: "short",
@@ -351,6 +430,43 @@ const Dashboard = () => {
       });
     } catch {
       return "날짜 오류";
+    }
+  };
+
+  // 전월 대비 변화율 계산
+  const calculateMonthlyChange = () => {
+    if (
+      !currentMonthSummary ||
+      !monthlyTrendData ||
+      monthlyTrendData.length < 2
+    ) {
+      return null;
+    }
+
+    const currentCost = parseFloat(currentMonthSummary.totalCost || 0);
+    const previousMonthData = monthlyTrendData[monthlyTrendData.length - 2];
+    const previousCost = parseFloat(previousMonthData?.totalCost || 0);
+
+    if (previousCost === 0) return null;
+
+    return ((currentCost - previousCost) / previousCost) * 100;
+  };
+
+  // 차트 데이터 가용성 확인
+  const isChartDataAvailable = () => {
+    switch (chartType) {
+      case "daily":
+        return (
+          dailyCostTrend &&
+          Array.isArray(dailyCostTrend.dailyCosts) &&
+          dailyCostTrend.dailyCosts.length > 0
+        );
+      case "service":
+        return Array.isArray(serviceCostData) && serviceCostData.length > 0;
+      case "monthly":
+        return Array.isArray(monthlyTrendData) && monthlyTrendData.length > 0;
+      default:
+        return false;
     }
   };
 
@@ -369,10 +485,6 @@ const Dashboard = () => {
       gridTemplateColumns: "50% 25% 25%",
       gap: "24px",
       height: "90vh",
-      "@media (max-width: 1024px)": {
-        gridTemplateColumns: "1fr",
-        height: "auto",
-      },
     },
     card: {
       backgroundColor: "white",
@@ -453,12 +565,18 @@ const Dashboard = () => {
     negative: {
       color: "#059669",
     },
+    summaryDetails: {
+      fontSize: "12px",
+      color: "#64748b",
+      marginTop: "8px",
+    },
     listContainer: {
       flex: 1,
       overflowY: "auto",
     },
     loadingContainer: {
       display: "flex",
+      flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
       height: "200px",
@@ -472,7 +590,21 @@ const Dashboard = () => {
       animation: "spin 1s linear infinite",
     },
     loadingText: {
-      marginLeft: "12px",
+      marginTop: "12px",
+      color: "#6b7280",
+    },
+    errorText: {
+      color: "#dc2626",
+      fontSize: "14px",
+      textAlign: "center",
+      padding: "20px",
+    },
+    noDataContainer: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "300px",
       color: "#6b7280",
     },
     itemCard: {
@@ -539,7 +671,6 @@ const Dashboard = () => {
     },
   };
 
-  // CSS 애니메이션을 위한 스타일 태그
   const cssAnimation = `
     @keyframes spin {
       0% { transform: rotate(0deg); }
@@ -573,6 +704,7 @@ const Dashboard = () => {
       <div style={styles.container}>
         <style>{cssAnimation}</style>
         <div style={styles.maxWidth}>
+          {error && <div style={styles.errorText}>{error}</div>}
           <div style={styles.gridContainer} className="grid-container">
             {/* 왼쪽: 비용 차트 섹션 */}
             <div style={styles.card}>
@@ -623,22 +755,53 @@ const Dashboard = () => {
                 <div style={styles.summaryCard}>
                   <div style={styles.summaryTitle}>이번 달 총 비용</div>
                   <div style={styles.summaryValue}>
-                    ${currentMonthSummary.totalCost?.toFixed(2) || "0.00"}
+                    ${parseFloat(currentMonthSummary.totalCost || 0).toFixed(2)}{" "}
+                    {currentMonthSummary.currency || "USD"}
                   </div>
-                  {currentMonthSummary.changeFromLastMonth && (
-                    <div
-                      style={{
-                        ...styles.summaryChange,
-                        ...(currentMonthSummary.changeFromLastMonth > 0
-                          ? styles.positive
-                          : styles.negative),
-                      }}
-                    >
-                      {currentMonthSummary.changeFromLastMonth > 0 ? "↑" : "↓"}
-                      {Math.abs(
-                        currentMonthSummary.changeFromLastMonth
-                      ).toFixed(1)}
-                      % 전월 대비
+                  <div style={styles.summaryDetails}>
+                    일평균: $
+                    {parseFloat(currentMonthSummary.dailyAverage || 0).toFixed(
+                      2
+                    )}
+                  </div>
+                  {(() => {
+                    const change = calculateMonthlyChange();
+                    return change !== null ? (
+                      <div
+                        style={{
+                          ...styles.summaryChange,
+                          ...(change > 0 ? styles.positive : styles.negative),
+                        }}
+                      >
+                        {change > 0 ? "↑" : "↓"}
+                        {Math.abs(change).toFixed(1)}% 전월 대비
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              )}
+
+              {/* 일별 차트 표시 시 추가 정보 */}
+              {chartType === "daily" && dailyCostTrend && (
+                <div style={styles.summaryCard}>
+                  <div style={styles.summaryTitle}>최근 30일 요약</div>
+                  <div style={styles.summaryDetails}>
+                    총 비용: $
+                    {parseFloat(dailyCostTrend.totalCost || 0).toFixed(2)}{" "}
+                    {dailyCostTrend.currency || "USD"}
+                  </div>
+                  <div style={styles.summaryDetails}>
+                    일평균: $
+                    {parseFloat(dailyCostTrend.averageDailyCost || 0).toFixed(
+                      2
+                    )}
+                  </div>
+                  {dailyCostTrend.projectedMonthlyCost && (
+                    <div style={styles.summaryDetails}>
+                      예상 월 비용: $
+                      {parseFloat(dailyCostTrend.projectedMonthlyCost).toFixed(
+                        2
+                      )}
                     </div>
                   )}
                 </div>
@@ -651,30 +814,18 @@ const Dashboard = () => {
                     <div style={styles.spinner}></div>
                     <span style={styles.loadingText}>차트 로딩 중...</span>
                   </div>
+                ) : isChartDataAvailable() ? (
+                  <canvas ref={chartRef} style={styles.chartCanvas} />
                 ) : (
-                  <>
-                    <canvas
-                      ref={dailyChartRef}
-                      style={{
-                        ...styles.chartCanvas,
-                        display: chartType === "daily" ? "block" : "none",
-                      }}
-                    />
-                    <canvas
-                      ref={serviceChartRef}
-                      style={{
-                        ...styles.chartCanvas,
-                        display: chartType === "service" ? "block" : "none",
-                      }}
-                    />
-                    <canvas
-                      ref={monthlyChartRef}
-                      style={{
-                        ...styles.chartCanvas,
-                        display: chartType === "monthly" ? "block" : "none",
-                      }}
-                    />
-                  </>
+                  <div style={styles.noDataContainer}>
+                    <BarChart3 size={48} color="#d1d5db" />
+                    <p style={{ marginTop: "16px", fontSize: "16px" }}>
+                      {chartType === "daily" && "일별 비용 데이터가 없습니다"}
+                      {chartType === "service" &&
+                        "서비스별 비용 데이터가 없습니다"}
+                      {chartType === "monthly" && "월별 비용 데이터가 없습니다"}
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -730,7 +881,7 @@ const Dashboard = () => {
                         <div style={styles.detailItem}>
                           <List size={14} color="#6b7280" />
                           <span style={styles.detailText}>
-                            리소스 ID: {recommendation.resourceId}
+                            리소스 ID: {recommendation.resourceId || "N/A"}
                           </span>
                         </div>
 
@@ -739,7 +890,9 @@ const Dashboard = () => {
                             <DollarSign size={14} color="#059669" />
                             <span style={styles.savingText}>
                               예상 절약: $
-                              {recommendation.expectedSaving.toFixed(2)}
+                              {parseFloat(
+                                recommendation.expectedSaving
+                              ).toFixed(2)}
                             </span>
                           </div>
                         )}
