@@ -61,8 +61,8 @@ public class UserService {
             user.updateEmail(request.email());
         }
 
-        if(request.password() != null) {
-            user.updatePassword(passwordEncoder.encode(request.password()));
+        if(request.newPassword() != null && passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            user.updatePassword(passwordEncoder.encode(request.newPassword()));
         }
     }
 }

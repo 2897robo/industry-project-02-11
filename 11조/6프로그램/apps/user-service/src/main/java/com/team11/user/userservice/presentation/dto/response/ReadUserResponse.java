@@ -10,6 +10,7 @@ public record ReadUserResponse(
         Long id,
         String uid,
         String name,
+        String email,
         LocalDateTime createdAt
 ) {
     public static ReadUserResponse from(User user) {
@@ -18,6 +19,7 @@ public record ReadUserResponse(
                 .uid(user.getUid())
                 .name(user.getName())
                 .createdAt(user.getCreatedAt())
+                .email(user.getEmail())
                 .build();
     }
 }

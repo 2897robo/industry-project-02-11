@@ -1,7 +1,8 @@
 package com.team11.user.userservice.presentation.dto.request;
 
 public record UpdateUserRequest(
-        String password,
+        String currentPassword,
+        String newPassword,
         String email,
         String name
 ) {

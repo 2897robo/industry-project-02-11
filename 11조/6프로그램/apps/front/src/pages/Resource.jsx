@@ -115,6 +115,13 @@ export default function Resource() {
         <Header
           title={"리소스 계정"}
           leftChild={<Button onClick={() => nav(-1)} text={"< 뒤로가기"} />}
+          rightChild={
+            <Button
+              onClick={() => nav("/mypage")}
+              text={"마이페이지"}
+              type="default"
+            />
+          }
         />
         <div className="account-container">
           <div className="loading">계정 목록을 불러오는 중...</div>
@@ -128,6 +135,13 @@ export default function Resource() {
       <Header
         title={"리소스 계정"}
         leftChild={<Button onClick={() => nav(-1)} text={"< 뒤로가기"} />}
+        rightChild={
+          <Button
+            onClick={() => nav("/mypage")}
+            text={"마이페이지"}
+            type="default"
+          />
+        }
       />
 
       <div className="account-container">
