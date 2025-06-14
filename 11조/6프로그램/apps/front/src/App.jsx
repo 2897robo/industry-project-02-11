@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./routes/PrivateRoute";
 import Resource from "./pages/Resource";
+import ExampleDashBoard from "./pages/ExampleDashBoard";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -18,11 +19,11 @@ function App() {
       <Route path="/" element={<PrivateRoute element={<Resource />} />} />
       <Route path="/mypage" element={<PrivateRoute element={<MyPage />} />} />
       <Route path="/resource" element={<Resource />} />
-      {/* <Route
+      <Route
         path="/dashboard/:id"
         element={<PrivateRoute element={<Dashboard />} />}
-      /> */}
-      <Route path="/dashboard/:id" element={<Dashboard />} />
+      />
+      <Route path="/example/dashboard" element={<ExampleDashBoard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
