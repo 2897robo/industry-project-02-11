@@ -2,7 +2,9 @@ package com.team11.backend.commons.advice;
 
 import com.team11.backend.commons.exception.ApplicationException;
 import com.team11.backend.commons.exception.payload.ErrorStatus;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,6 +21,14 @@ public class GlobalRestControllerAdvice {
         ErrorStatus errorStatus = e.getErrorStatus();
 
         return new ResponseEntity<>(errorStatus, errorStatus.toHttpStatus());
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<String> handleFeignException(FeignException ex) {
+        int status = ex.status();
+        String body = ex.contentUTF8();
+
+        return ResponseEntity.status(status).body(body);
     }
 
     @ExceptionHandler(Exception.class)

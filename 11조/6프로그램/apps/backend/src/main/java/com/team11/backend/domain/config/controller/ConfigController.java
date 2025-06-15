@@ -18,8 +18,8 @@ public class ConfigController {
     private final ConfigService configService;
 
     @GetMapping
-    public ResponseEntity<ReadConfigResponse> getByUserId(@AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok(configService.getByUserId(user.getUsername()));
+    public ResponseEntity<ReadConfigResponse> getByUserUid(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(configService.getByUserUid(user.getUsername()));
     }
 
     @PostMapping
@@ -35,7 +35,7 @@ public class ConfigController {
 
     @DeleteMapping
     public ResponseEntity<Void> delete(@AuthenticationPrincipal UserDetails user) {
-        configService.deleteByUserId(user.getUsername());
+        configService.deleteByUserUid(user.getUsername());
         return ResponseEntity.ok().build();
     }
 }

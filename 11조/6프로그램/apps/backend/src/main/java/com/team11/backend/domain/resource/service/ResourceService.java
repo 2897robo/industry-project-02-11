@@ -1,6 +1,7 @@
 package com.team11.backend.domain.resource.service;
 
 import com.team11.backend.domain.resource.entity.Resource;
+import com.team11.backend.domain.resource.entity.type.AwsServiceType;
 import com.team11.backend.domain.resource.dto.ResourceDto;
 import com.team11.backend.domain.resource.repository.ResourceRepository;
 import com.team11.backend.commons.exception.ApplicationException;
@@ -25,7 +26,7 @@ public class ResourceService {
     @Transactional
     public ResourceDto.Response createResource(ResourceDto.CreateRequest request) {
         Resource resource = Resource.builder()
-                .userId(request.getUserId())
+                .userUid(request.getUserUid())
                 .awsResourceId(request.getAwsResourceId())
                 .serviceType(request.getServiceType())
                 .region(request.getRegion())
@@ -48,29 +49,49 @@ public class ResourceService {
     // ID로 리소스 조회
     public ResourceDto.Response getResourceById(Long id) {
         Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException(ErrorStatus.toErrorStatus("Resource not found with id: " + id, HttpStatus.NOT_FOUND.value(), LocalDateTime.now())));
+                .orElseThrow(() -> new ApplicationException(
+                    ErrorStatus.toErrorStatus("리소스를 찾을 수 없습니다: " + id, HttpStatus.NOT_FOUND.value(), LocalDateTime.now())
+                ));
         return ResourceDto.Response.from(resource);
     }
 
-    // 사용자 ID로 리소스 목록 조회
-    public List<ResourceDto.Response> getResourcesByUserId(Long userId) {
-        return resourceRepository.findByUserId(userId).stream() // findByUserId 사용
+    // 사용자의 모든 리소스 조회
+    public List<ResourceDto.Response> getResourcesByUserUid(String userUid) {
+        return resourceRepository.findByUserUid(userUid).stream()
+                .map(ResourceDto.Response::from)
+                .collect(Collectors.toList());
+    }
+
+    // 사용자의 서비스 타입별 리소스 조회
+    public List<ResourceDto.Response> getResourcesByUserUidAndServiceType(String userUid, AwsServiceType serviceType) {
+        return resourceRepository.findByUserUidAndServiceType(userUid, serviceType).stream()
+                .map(ResourceDto.Response::from)
+                .collect(Collectors.toList());
+    }
+
+    // 사용자의 유휴 리소스만 조회
+    public List<ResourceDto.Response> getIdleResourcesByUserUid(String userUid) {
+        return resourceRepository.findByUserUidAndIsIdleTrue(userUid).stream()
                 .map(ResourceDto.Response::from)
                 .collect(Collectors.toList());
     }
 
     // AWS 리소스 ID로 리소스 조회
     public ResourceDto.Response getResourceByAwsResourceId(String awsResourceId) {
-        Resource resource = resourceRepository.findByAwsResourceId(awsResourceId) // findByAwsResourceId 사용
-                .orElseThrow(() -> new ApplicationException(ErrorStatus.toErrorStatus("Resource not found with AWS resource id: " + awsResourceId, HttpStatus.NOT_FOUND.value(), LocalDateTime.now())));
+        Resource resource = resourceRepository.findByAwsResourceId(awsResourceId)
+                .orElseThrow(() -> new ApplicationException(
+                    ErrorStatus.toErrorStatus("AWS 리소스를 찾을 수 없습니다: " + awsResourceId, HttpStatus.NOT_FOUND.value(), LocalDateTime.now())
+                ));
         return ResourceDto.Response.from(resource);
     }
 
-    // 리소스 업데이트
+    // 리소스 업데이트 (사용자 확인 포함)
     @Transactional
-    public ResourceDto.Response updateResource(Long id, ResourceDto.UpdateRequest request) {
-        Resource resource = resourceRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException(ErrorStatus.toErrorStatus("Resource not found with id: " + id, HttpStatus.NOT_FOUND.value(), LocalDateTime.now())));
+    public ResourceDto.Response updateResource(String userUid, Long id, ResourceDto.UpdateRequest request) {
+        Resource resource = resourceRepository.findByIdAndUserUid(id, userUid)
+                .orElseThrow(() -> new ApplicationException(
+                    ErrorStatus.toErrorStatus("리소스를 찾을 수 없거나 권한이 없습니다: " + id, HttpStatus.NOT_FOUND.value(), LocalDateTime.now())
+                ));
 
         resource.update(
                 request.getServiceType(),
@@ -83,12 +104,13 @@ public class ResourceService {
         return ResourceDto.Response.from(resource);
     }
 
-    // 리소스 삭제
+    // 리소스 삭제 (사용자 확인 포함)
     @Transactional
-    public void deleteResource(Long id) {
-        if (!resourceRepository.existsById(id)) {
-            throw new ApplicationException(ErrorStatus.toErrorStatus("Resource not found with id: " + id, HttpStatus.NOT_FOUND.value(), LocalDateTime.now()));
-        }
-        resourceRepository.deleteById(id);
+    public void deleteResource(String userUid, Long id) {
+        Resource resource = resourceRepository.findByIdAndUserUid(id, userUid)
+                .orElseThrow(() -> new ApplicationException(
+                    ErrorStatus.toErrorStatus("리소스를 찾을 수 없거나 권한이 없습니다: " + id, HttpStatus.NOT_FOUND.value(), LocalDateTime.now())
+                ));
+        resourceRepository.delete(resource);
     }
 }

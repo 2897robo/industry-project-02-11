@@ -19,8 +19,8 @@ public class Resource {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id")
-    private Long userId; // 사용자 ID
+    @Column(name = "user_uid", nullable = false)
+    private String userUid; // 사용자 UID
 
     @Column(name = "aws_resource_id", length = 100)
     private String awsResourceId;
@@ -49,8 +49,8 @@ public class Resource {
     private LocalDateTime createdAt;
 
     @Builder
-    public Resource(Long userId, String awsResourceId, AwsServiceType serviceType, String region, Boolean isIdle, Float usageRate, Float costUsd, LocalDateTime lastCheckedAt) {
-        this.userId = userId;
+    public Resource(String userUid, String awsResourceId, AwsServiceType serviceType, String region, Boolean isIdle, Float usageRate, Float costUsd, LocalDateTime lastCheckedAt) {
+        this.userUid = userUid;
         this.awsResourceId = awsResourceId;
         this.serviceType = serviceType;
         this.region = region;

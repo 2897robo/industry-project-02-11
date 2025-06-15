@@ -17,7 +17,7 @@ public class Config {
     private Long id;
 
     @Column(name = "user_id")
-    private String userId;
+    private String userUid;
 
     @Column(name = "idle_threshold")
     private Float idleThreshold;
@@ -30,9 +30,9 @@ public class Config {
     private LocalDateTime createdAt;
 
     @Builder
-    public Config(Long id, String userId, Float idleThreshold, Integer budgetLimit, LocalDateTime createdAt) {
+    public Config(Long id, String userUid, Float idleThreshold, Integer budgetLimit, LocalDateTime createdAt) {
         this.id = id;
-        this.userId = userId;
+        this.userUid = userUid;
         this.idleThreshold = idleThreshold;
         this.budgetLimit = budgetLimit;
         this.createdAt = createdAt;

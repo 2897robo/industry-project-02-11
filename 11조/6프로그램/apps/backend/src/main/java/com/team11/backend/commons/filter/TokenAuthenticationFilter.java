@@ -1,8 +1,10 @@
 package com.team11.backend.commons.filter;
 
+import com.team11.backend.commons.exception.ApplicationException;
 import com.team11.backend.commons.exception.TokenException;
 import com.team11.backend.commons.exception.payload.ErrorStatus;
 import com.team11.backend.infrastructure.adapter.AuthAdapter;
+import feign.FeignException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -65,7 +67,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             setAuthentication(accessToken);
         } else if(validateToken(refreshToken)) {
 
-            String reissueAccessToken = authAdapter.loginByRefreshToken();
+            String reissueAccessToken;
+
+            try {
+                reissueAccessToken = authAdapter.loginByRefreshToken();
+            } catch (FeignException e) {
+                throw new TokenException(ErrorStatus.toErrorStatus(e.getMessage(), 401, LocalDateTime.now()));
+            }
 
             if(StringUtils.hasText(reissueAccessToken)){
                 setAuthentication(reissueAccessToken);

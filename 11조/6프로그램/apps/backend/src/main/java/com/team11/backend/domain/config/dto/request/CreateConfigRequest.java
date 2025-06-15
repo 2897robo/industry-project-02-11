@@ -9,9 +9,9 @@ public record CreateConfigRequest(
         Integer budgetLimit,
         LocalDateTime createdAt
 ) {
-    public Config toEntity(String userId) {
+    public Config toEntity(String userUid) {
         return Config.builder()
-                .userId(userId)
+                .userUid(userUid)
                 .idleThreshold(idleThreshold)
                 .budgetLimit(budgetLimit)
                 .createdAt(LocalDateTime.now())

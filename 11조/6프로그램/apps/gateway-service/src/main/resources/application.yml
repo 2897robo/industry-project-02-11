@@ -24,6 +24,9 @@ spring:
               - OPTIONS
             allowedHeaders: "*"
             allowCredentials: true
+            exposedHeaders:
+              - "Authorization"
+              - "authorization"
       routes:
         - id: user-service
           uri: lb://USER-SERVICE/
@@ -45,3 +48,6 @@ spring:
             - Path=/resource-service/**
           filters:
             - RewritePath=/resource-service/(?<segment>.*), /$\{segment}
+
+jwt:
+  secret: team11-aws-cost-optimization-jwt-secret-key-2025
