@@ -1,0 +1,143 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY_PREFIX: team11-cloud-cost
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Grant execute permission for gradlew
+      run: |
+        chmod +x 11조/6프로그램/apps/backend/gradlew
+        chmod +x 11조/6프로그램/apps/auth-service/gradlew
+        chmod +x 11조/6프로그램/apps/user-service/gradlew
+        chmod +x 11조/6프로그램/apps/gateway-service/gradlew
+        chmod +x 11조/6프로그램/apps/eureka-discovery-service/gradlew
+    
+    - name: Build Backend Service
+      run: |
+        cd 11조/6프로그램/apps/backend
+        ./gradlew build -x test
+    
+    - name: Build Auth Service
+      run: |
+        cd 11조/6프로그램/apps/auth-service
+        ./gradlew build -x test
+    
+    - name: Build User Service
+      run: |
+        cd 11조/6프로그램/apps/user-service
+        ./gradlew build -x test
+    
+    - name: Build Gateway Service
+      run: |
+        cd 11조/6프로그램/apps/gateway-service
+        ./gradlew build -x test
+    
+    - name: Build Eureka Service
+      run: |
+        cd 11조/6프로그램/apps/eureka-discovery-service
+        ./gradlew build -x test
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    
+    - name: Build and push Docker images
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Build and push Backend Service
+        cd 11조/6프로그램/apps/backend
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-backend:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-backend:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-backend:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-backend:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-backend:latest
+        
+        # Build and push Auth Service
+        cd ../auth-service
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-auth:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-auth:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-auth:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-auth:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-auth:latest
+        
+        # Build and push User Service
+        cd ../user-service
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-user:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-user:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-user:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-user:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-user:latest
+        
+        # Build and push Gateway Service
+        cd ../gateway-service
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-gateway:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-gateway:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-gateway:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-gateway:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-gateway:latest
+        
+        # Build and push Eureka Service
+        cd ../eureka-discovery-service
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-eureka:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-eureka:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-eureka:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-eureka:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX-eureka:latest
+    
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ec2-user
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd /home/ec2-user/app
+          git pull origin main
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
