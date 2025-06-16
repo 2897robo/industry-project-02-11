@@ -1,11 +1,7 @@
 #!/bin/bash
 
-echo "🚀 Team11 프로덕션 빌드 및 푸시 스크립트"
+echo "🚀 CostWise ECR 빌드 및 푸시 스크립트"
 echo "======================================="
-
-# Docker Hub 사용자명 설정
-DOCKER_USERNAME=${1:-"your-docker-username"}
-VERSION=${2:-"latest"}
 
 # 색상 정의
 GREEN='\033[0;32m'
@@ -13,54 +9,71 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# 각 서비스 빌드 및 태그
-services=("eureka-discovery-service" "gateway-service" "auth-service" "user-service" "backend")
-service_names=("eureka-service" "gateway-service" "auth-service" "user-service" "backend-service")
+# ECR 레지스트리 URL 설정
+if [ -z "$ECR_REGISTRY" ]; then
+    echo -e "${YELLOW}ECR 레지스트리 URL을 입력하세요:${NC}"
+    echo "예: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com"
+    read ECR_REGISTRY
+fi
 
-echo -e "${YELLOW}1. 서비스 빌드 시작...${NC}"
+# 버전 태그
+VERSION=${1:-"latest"}
+
+# ECR 로그인
+echo -e "${YELLOW}ECR 로그인 중...${NC}"
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ ECR 로그인 실패!${NC}"
+    exit 1
+fi
+
+# 각 서비스 빌드 및 푸시
+services=("eureka-discovery-service" "gateway-service" "auth-service" "user-service" "backend")
+ecr_names=("team11-cloud-cost-eureka" "team11-cloud-cost-gateway" "team11-cloud-cost-auth" "team11-cloud-cost-user" "team11-cloud-cost-backend")
+
+echo -e "${YELLOW}서비스 빌드 및 푸시 시작...${NC}"
 for i in ${!services[@]}; do
     service=${services[$i]}
-    service_name=${service_names[$i]}
+    ecr_name=${ecr_names[$i]}
     
-    echo -e "${YELLOW}Building $service...${NC}"
+    echo -e "${YELLOW}========== $service 처리 중 ==========${NC}"
     cd apps/$service
     
     # Gradle 빌드
+    echo "Gradle 빌드 중..."
     ./gradlew clean build -x test
     if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ $service 빌드 실패!${NC}"
+        echo -e "${RED}❌ $service Gradle 빌드 실패!${NC}"
         exit 1
     fi
     
     # Docker 이미지 빌드
-    docker build -t team11/$service_name:$VERSION .
+    echo "Docker 이미지 빌드 중..."
+    docker build -t $ecr_name:$VERSION .
     if [ $? -ne 0 ]; then
         echo -e "${RED}❌ $service Docker 이미지 빌드 실패!${NC}"
         exit 1
     fi
     
-    # Docker Hub에 태그 지정
-    docker tag team11/$service_name:$VERSION $DOCKER_USERNAME/$service_name:$VERSION
+    # ECR에 태그 지정 및 푸시
+    echo "ECR에 푸시 중..."
+    docker tag $ecr_name:$VERSION $ECR_REGISTRY/$ecr_name:$VERSION
+    docker push $ECR_REGISTRY/$ecr_name:$VERSION
+    
+    # latest 태그도 푸시
+    if [ "$VERSION" != "latest" ]; then
+        docker tag $ecr_name:$VERSION $ECR_REGISTRY/$ecr_name:latest
+        docker push $ECR_REGISTRY/$ecr_name:latest
+    fi
     
     cd ../..
-    echo -e "${GREEN}✅ $service 빌드 완료${NC}"
+    echo -e "${GREEN}✅ $service 빌드 및 푸시 완료${NC}"
+    echo ""
 done
 
+echo -e "${GREEN}✅ 모든 서비스 빌드 및 푸시가 완료되었습니다!${NC}"
 echo ""
-echo -e "${YELLOW}2. Docker Hub에 로그인하세요:${NC}"
-echo "docker login"
-
-echo ""
-echo -e "${YELLOW}3. 이미지를 푸시하려면 다음 명령어를 실행하세요:${NC}"
-for service_name in ${service_names[@]}; do
-    echo "docker push $DOCKER_USERNAME/$service_name:$VERSION"
-done
-
-echo ""
-echo -e "${GREEN}✅ 빌드가 완료되었습니다!${NC}"
-echo ""
-echo "배포 서버에서 실행할 명령어:"
-echo "1. .env 파일 생성 (환경변수 설정)"
-echo "2. docker-compose.prod.yml 파일에서 이미지 이름 업데이트"
-echo "3. docker-compose -f docker-compose.prod.yml pull"
-echo "4. docker-compose -f docker-compose.prod.yml up -d"
+echo "다음 단계:"
+echo "1. EC2 서버에 SSH로 접속"
+echo "2. cd /home/ec2-user/app/11조/6프로그램"
+echo "3. ./deploy-prod.sh 실행"
