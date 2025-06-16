@@ -1,0 +1,8 @@
+배포 정보
+========
+날짜: Mon Jun 16 10:29:09 KST 2025
+인스턴스 ID: i-02456bb2cbd60066a
+Public IP: 3.35.52.87
+보안 그룹: sg-0ef2b5518a82b7923
+VPC: vpc-0a3ceb3f5f2406f7d
+서브넷: subnet-0ec60ca64d19daf35
