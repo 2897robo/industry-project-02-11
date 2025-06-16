@@ -4,7 +4,7 @@
 # 로컬에서 실행합니다.
 
 # EC2 정보 (실제 값으로 변경하세요)
-EC2_HOST="ubuntu@52.79.119.60"     # EC2 Public IP
+EC2_HOST="ubuntu@3.35.52.87"        # EC2 Public IP
 PEM_KEY_PATH="./costwise-key.pem"  # PEM 키 파일 경로
 
 echo "🚀 EC2에 접속하여 배포 시작..."
